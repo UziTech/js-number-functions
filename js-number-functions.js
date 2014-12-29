@@ -1,5 +1,8 @@
 //modified from http://stackoverflow.com/a/149099/806777
 Number.prototype.toMoney = function (maxPrecision) { // -1234.56 -> ($1,234.56)
+	if(isNaN(this)){
+		return "NaN";
+	}
 	maxPrecision = maxPrecision || 2;
 	maxPrecision = (maxPrecision > 20 ? 20 : (maxPrecision < 0 ? 0 : maxPrecision));
 	var n = Math.abs(this);
@@ -8,6 +11,9 @@ Number.prototype.toMoney = function (maxPrecision) { // -1234.56 -> ($1,234.56)
 	return (this < 0 ? "(" : "") + "$" + n + (this < 0 ? ")" : "");
 };
 Number.prototype.toClean = function (maxPrecision, minPrecision) {// 1.500000 -> 1.5; 1.0000 -> 1
+	if(isNaN(this)){
+		return "NaN";
+	}
 	maxPrecision = maxPrecision || 20;
 	maxPrecision = (maxPrecision > 20 ? 20 : (maxPrecision < 0 ? 0 : maxPrecision));
 	minPrecision = minPrecision || 0;
@@ -20,12 +26,7 @@ Number.prototype.toClean = function (maxPrecision, minPrecision) {// 1.500000 ->
 	var n = this;
 
 	//limit to maxPrecision
-	if (n % 1 !== 0) {
-		n = n.toFixed(maxPrecision);
-		n = String(n).replace(/\.?0*$/, "");
-	} else {
-		n = n.toFixed();
-	}
+		n = new String(+(n.toFixed(maxPrecision)));
 
 	//limit to minPrecision
 	if (minPrecision > 0) {
@@ -66,7 +67,15 @@ String.prototype.toClean = function (maxPrecision, minPrecision) {
 	return this.toNumber().toClean(maxPrecision, minPrecision);
 };
 String.prototype.toNumber = function () {
-	return new Number(this.replace(/[^\d\.]|\.(?=.*\.)/g, ""));//remove all except digits and last dot
+	var n = this;
+	var negative = /^\s*\(.*\)\s*$|^\s*-/.test(n);//negative if matches '(...)' or '-...'
+	n = n.replace(/[^\d\.]|\.(?=.*\.)/g, "");//remove all except digits and last dot
+	if(n === "." || n === ""){
+		n = NaN;
+	} else if(negative){
+		n = -n;
+	}
+	return new Number(n);
 };
 String.prototype.toClosest = function (number) {
 	return this.toNumber().toClosest(number);
